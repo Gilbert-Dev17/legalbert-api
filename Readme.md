@@ -29,3 +29,15 @@ pip install fastapi pydantic
 # or install all requirements:
 pip install -r requirements.txt
 ```
+
+### Run Locally
+
+To start the API server with auto-reload enabled:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at `http://localhost:8000`
+
+You can access the interactive API documentation at `http://localhost:8000/docs`
