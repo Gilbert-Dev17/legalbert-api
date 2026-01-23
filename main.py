@@ -20,7 +20,7 @@ app.include_router(classify_router)
 
 # --- YOUR WARMUP STRATEGY ---
 # This runs ONCE when Railway starts the container.
-@app.on_event("startup")
+@app.get("startup")
 def startup():
     print(" Railway Container Started")
     print(" Loading LegalBERT Model into Memory...")
