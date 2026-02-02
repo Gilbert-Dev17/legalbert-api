@@ -25,8 +25,7 @@ venv\Scripts\activate
 Once the virtual environment is activated, install the required packages:
 
 ```bash
-pip install fastapi pydantic
-# or install all requirements:
+# install all requirements:
 pip install -r requirements.txt
 ```
 

@@ -1,36 +1,42 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+from app.services.ocr_service import perform_ocr
+from app.services.legalbert_model import classify_text
+from .schemas import ClassifyDocumentResponse # Import the schema you created
+import requests
 
-router = APIRouter(prefix="")
+router = APIRouter()
 
-# ----------- Models -----------
+from urllib.parse import urlparse
+import os
 
-class ClassifyDocumentRequest(BaseModel):
-    case_id: str
-    file_url: str
-    extracted_text: str
+@router.post("/process-document", response_model=ClassifyDocumentResponse)
+async def process_document(file_url: str):
+    try:
+        response = requests.get(file_url)
+        response.raise_for_status()
 
+        # --- NEW LOGIC: Extract the filename from a complex URL ---
+        # This takes '.../motion_for_permanent_dismissal.pdf?token=...'
+        # and turns it into 'motion_for_permanent_dismissal.pdf'
+        parsed_url = urlparse(file_url)
+        filename = os.path.basename(parsed_url.path)
 
-class ClassifyDocumentResponse(BaseModel):
-    case_id: str
-    file_url: str
-    ai_tag: str
-    confidence_score: float
-    extracted_text: str
+        # PASS BOTH: file data and the filename
+        extracted_text = perform_ocr(response.content, filename)
 
+        if not extracted_text:
+            raise HTTPException(status_code=400, detail="OCR could not extract any text")
 
-# ----------- Endpoint -----------
+        # ... (rest of your classification logic)
+        classification = classify_text(extracted_text)
 
-@router.post("/classify-document", response_model=ClassifyDocumentResponse)
-def classify_document(req: ClassifyDocumentRequest):
-    # Temporary stub – LegalBERT later
-    ai_label = "affidavit"
-    confidence = 0.91
+        return {
+            "case_id": "extract-from-logic-here", # Ensure you pass the required schema fields
+            "file_url": file_url,
+            "ai_tag": str(classification["label"]),
+            "confidence_score": classification["confidence"],
+            "extracted_text": extracted_text
+        }
 
-    return {
-        "case_id": req.case_id,
-        "file_url": req.file_url,
-        "ai_tag": ai_label,
-        "confidence_score": confidence,
-        "extracted_text": req.extracted_text,
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
