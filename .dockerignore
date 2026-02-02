@@ -1,0 +1,6 @@
+# Ignore the large model assets to keep image size under 4GB
+model_assets/
+__pycache__/
+*.pyc
+.git
+.env
