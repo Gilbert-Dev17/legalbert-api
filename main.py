@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # <--- IMPORT THIS
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
+from app.api.ocr import router as ocr_router
 
 app = FastAPI(title="LegalBERT API")
 
@@ -17,10 +18,11 @@ app.add_middleware(
 # Connect your routers
 app.include_router(health_router)
 app.include_router(classify_router)
+app.include_router(ocr_router)  # <--- ADD THIS LINE
 
 # --- YOUR WARMUP STRATEGY ---
 # This runs ONCE when Railway starts the container.
-@app.get("startup")
+@app.on_event("startup")
 def startup():
     print(" Railway Container Started")
     print(" Loading LegalBERT Model into Memory...")
