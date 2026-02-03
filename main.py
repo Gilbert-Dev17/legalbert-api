@@ -4,6 +4,7 @@ from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
 from app.services.model_loader import load_model
+import os
 
 app = FastAPI(title="LegalBERT API")
 
@@ -21,6 +22,13 @@ app.include_router(ocr_router)
 
 @app.on_event("startup")
 def startup():
+    print("Checking model cache directory contents:")
+    hf_token = os.getenv("HF_TOKEN")
+    if hf_token:
+        print("HF_TOKEN:", hf_token[:4] + "...")
+    else:
+        print("HF_TOKEN: MISSING")
+    print(os.listdir("/models"))
     print("Railway Container Started")
     print("Loading LegalBERT into memory...")
     load_model()
