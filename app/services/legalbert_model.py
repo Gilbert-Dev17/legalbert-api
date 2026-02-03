@@ -16,7 +16,7 @@ def classify_text(text: str):
         outputs = model(**inputs)
         probs = torch.softmax(outputs.logits, dim=1)
 
-    label_index = torch.argmax(probs, dim=1).item()
+    label_index = int(torch.argmax(probs, dim=1).item())
     label_name = model.config.id2label.get(label_index, f"LABEL_{label_index}")
 
     return {
