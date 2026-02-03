@@ -5,7 +5,7 @@ WORKDIR /app
 # Ensure the models directory exists and is writable
 RUN mkdir -p /models && chmod 777 /models
 
-ENV TRANSFORMERS_CACHE=/tmp/hf_cache
+# ENV TRANSFORMERS_CACHE=/tmp/hf_cache
 ENV HF_HOME=/tmp/hf_home
 
 RUN apt-get update && apt-get install -y \
