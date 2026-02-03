@@ -7,21 +7,22 @@ BASE_DIR = os.getenv("MODEL_STORAGE_PATH", "/models")
 MODEL_DIR = os.path.join(BASE_DIR, "legalbert")
 
 def ensure_model_present():
-    # 1. Check if the config exists FIRST
+    # Check for the weights and the config
+    weights_path = os.path.join(MODEL_DIR, "model.safetensors")
     config_path = os.path.join(MODEL_DIR, "config.json")
 
-    if os.path.exists(config_path):
-        print(f"✅ Model already present in {MODEL_DIR}. Skipping download.")
+    if os.path.exists(weights_path) and os.path.exists(config_path):
+        print(f"✅ Found Safetensors weights and config in {MODEL_DIR}.")
     else:
-        print(f"📥 Downloading model from HF repo {REPO_ID} ...")
+        print(f"📥 Missing weights or config. Downloading from HF...")
         os.makedirs(MODEL_DIR, exist_ok=True)
 
-        # Only download if we don't have it
+        # This will download the .safetensors version automatically
         tokenizer = AutoTokenizer.from_pretrained(REPO_ID, token=HF_TOKEN)
         model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, token=HF_TOKEN)
 
         tokenizer.save_pretrained(MODEL_DIR)
         model.save_pretrained(MODEL_DIR)
-        print(f"🚀 Model saved in {MODEL_DIR}")
+        print(f"🚀 Model and Tokenizer saved to {MODEL_DIR}")
 
     return MODEL_DIR
