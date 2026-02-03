@@ -1,5 +1,6 @@
 import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
 REPO_ID = os.getenv("HF_REPO_ID")
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -32,7 +33,9 @@ def load_model():
             )
             model = AutoModelForSequenceClassification.from_pretrained(
                 REPO_ID,
-                token=HF_TOKEN
+                token=HF_TOKEN,
+                torch_dtype=torch.float16,
+                device_map="auto",
             )
 
             tokenizer.save_pretrained(MODEL_DIR)
