@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt .
+RUN pip install accelerate
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
