@@ -1,12 +1,12 @@
 # Web Server
 fastapi==0.110.0
-uvicorn[standard]==0.27.1
+uvicorn==0.27.1
 pydantic==2.6.3
 requests==2.31.0
 
 # Machine Learning (Fixes the NumPy 2.x crash)
 numpy<2.0.0
-torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+# torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
 transformers==4.38.2
 
 # OCR & Image Processing
