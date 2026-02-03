@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
-from app.model_loader import load_model
+from app.services.model_loader import load_model
 
 app = FastAPI(title="LegalBERT API")
 
