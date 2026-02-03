@@ -11,8 +11,8 @@ def ensure_model_present():
 
     os.makedirs(MODEL_DIR, exist_ok=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(REPO_ID, use_auth_token=HF_TOKEN)
-    model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, use_auth_token=HF_TOKEN)
+    tokenizer = AutoTokenizer.from_pretrained(REPO_ID, token=HF_TOKEN)
+    model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, token=HF_TOKEN)
 
     tokenizer.save_pretrained(MODEL_DIR)
     model.save_pretrained(MODEL_DIR)
@@ -22,8 +22,8 @@ def ensure_model_present():
     else:
         print(f"Downloading model from HF repo {REPO_ID} ...")
         os.makedirs(MODEL_DIR, exist_ok=True)
-        tokenizer = AutoTokenizer.from_pretrained(REPO_ID, use_auth_token=HF_TOKEN)
-        model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, use_auth_token=HF_TOKEN)
+        tokenizer = AutoTokenizer.from_pretrained(REPO_ID, token=HF_TOKEN)
+        model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, token=HF_TOKEN)
         tokenizer.save_pretrained(MODEL_DIR)
         model.save_pretrained(MODEL_DIR)
         print(f"Model saved in {MODEL_DIR}")
