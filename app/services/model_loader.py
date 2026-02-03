@@ -7,24 +7,21 @@ BASE_DIR = os.getenv("MODEL_STORAGE_PATH", "/models")
 MODEL_DIR = os.path.join(BASE_DIR, "legalbert")
 
 def ensure_model_present():
-    print(f"Loading model from Hugging Face: {REPO_ID}")
+    # 1. Check if the config exists FIRST
+    config_path = os.path.join(MODEL_DIR, "config.json")
 
-    os.makedirs(MODEL_DIR, exist_ok=True)
-
-    tokenizer = AutoTokenizer.from_pretrained(REPO_ID, token=HF_TOKEN)
-    model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, token=HF_TOKEN)
-
-    tokenizer.save_pretrained(MODEL_DIR)
-    model.save_pretrained(MODEL_DIR)
-
-    if os.path.exists(os.path.join(MODEL_DIR, "config.json")):
-        print(f"Model already present in {MODEL_DIR}")
+    if os.path.exists(config_path):
+        print(f"✅ Model already present in {MODEL_DIR}. Skipping download.")
     else:
-        print(f"Downloading model from HF repo {REPO_ID} ...")
+        print(f"📥 Downloading model from HF repo {REPO_ID} ...")
         os.makedirs(MODEL_DIR, exist_ok=True)
+
+        # Only download if we don't have it
         tokenizer = AutoTokenizer.from_pretrained(REPO_ID, token=HF_TOKEN)
         model = AutoModelForSequenceClassification.from_pretrained(REPO_ID, token=HF_TOKEN)
+
         tokenizer.save_pretrained(MODEL_DIR)
         model.save_pretrained(MODEL_DIR)
-        print(f"Model saved in {MODEL_DIR}")
+        print(f"🚀 Model saved in {MODEL_DIR}")
+
     return MODEL_DIR
