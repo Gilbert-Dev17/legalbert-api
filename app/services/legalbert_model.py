@@ -8,7 +8,7 @@ classifier = pipeline(
     "text-classification",
     model=REPO_ID,
     tokenizer=REPO_ID,
-    # device=-1,
+    device=-1,
     # torch_dtype="float16",
     use_auth_token=HF_TOKEN
 )
