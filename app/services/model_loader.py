@@ -22,39 +22,50 @@ def ensure_model_present():
     print("Meow! ⬇️ Downloading LegalBERT from Google Drive...")
     os.makedirs(MODEL_DIR, exist_ok=True)
 
+    # Note: Use the /uc endpoint for direct download
     URL = "https://docs.google.com/uc?export=download"
     session = requests.Session()
 
-    # 1. First request to trigger the warning
+    # Step 1: Initial request to get the 'confirm' token
     response = session.get(URL, params={'id': GDRIVE_FILE_ID}, stream=True)
 
-    # 2. Extract the token from cookies
+    # Step 2: Try to find the token in cookies OR in the response text itself
     token = None
     for key, value in response.cookies.items():
         if key.startswith('download_warning'):
             token = value
             break
 
-    # 3. If token exists, request again with it; otherwise use the first response
+    # Sometimes Google puts the token in the URL of the "Download Anyway" button
+    if not token:
+        # Check if we got the warning page and try to parse the token out
+        content = response.text
+        if "confirm=" in content:
+            token = content.split("confirm=")[1].split("&")[0].split('"')[0]
+
+    # Step 3: If we have a token, make the final request
     if token:
-        params = {'id': GDRIVE_FILE_ID, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
+        print(f"Meow! Confirmation token found: {token[:5]}...")
+        response = session.get(URL, params={'id': GDRIVE_FILE_ID, 'confirm': token}, stream=True)
+    else:
+        print("Meow! No token required or found. Proceeding with initial response.")
 
-    # 4. Save the actual content
+    # Step 4: Write the file
     with open(MODEL_ZIP, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk: f.write(chunk)
+        for chunk in response.iter_content(chunk_size=32768):
+            if chunk:
+                f.write(chunk)
 
-    # 5. Unzip
+    # Step 5: Unzip with error handling
     try:
         with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
             zip_ref.extractall(MODEL_DIR)
         os.remove(MODEL_ZIP)
     except zipfile.BadZipFile:
-        # If it fails, print the content to see what Google sent us
-        with open(MODEL_ZIP, "r") as f:
-            print(f"Error: Downloaded file is not a zip. Content starts with: {f.read(100)}")
-        raise Exception("Failed to download a valid zip from Google Drive. Check file permissions!")
+        with open(MODEL_ZIP, "r", errors='ignore') as f:
+            start_content = f.read(150)
+        print(f"Error: Not a zip file. Content: {start_content}")
+        raise Exception("Google Drive blocked the download. Is the file shared with 'Anyone with the link'?")
 
     print(f"Meow! ✅ Model ready at {MODEL_DIR}")
     return MODEL_DIR
