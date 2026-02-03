@@ -1,5 +1,5 @@
 import torch
-from app.model_loader import load_model
+from app.services.model_loader import load_model
 
 tokenizer, model = load_model()
 

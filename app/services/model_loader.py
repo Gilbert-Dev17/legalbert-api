@@ -16,13 +16,13 @@ def load_model():
     if tokenizer and model:
         return tokenizer, model
 
-    print("🔍 Checking LegalBERT cache...")
+    print("Checking LegalBERT cache...")
 
     weights = os.path.join(MODEL_DIR, "model.safetensors")
     config = os.path.join(MODEL_DIR, "config.json")
 
     if not (os.path.exists(weights) and os.path.exists(config)):
-        print("⬇️ Downloading LegalBERT from Hugging Face...")
+        print("Downloading LegalBERT from Hugging Face...")
         os.makedirs(MODEL_DIR, exist_ok=True)
 
         tokenizer = AutoTokenizer.from_pretrained(
@@ -37,9 +37,9 @@ def load_model():
         tokenizer.save_pretrained(MODEL_DIR)
         model.save_pretrained(MODEL_DIR)
 
-        print("✅ LegalBERT downloaded and cached")
+        print("LegalBERT downloaded and cached")
     else:
-        print("✅ LegalBERT found in volume cache")
+        print("LegalBERT found in volume cache")
 
         tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
