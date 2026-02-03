@@ -21,7 +21,7 @@ app.include_router(ocr_router)
 
 @app.on_event("startup")
 def startup():
-    print("🚀 Railway Container Started")
-    print("🧠 Loading LegalBERT into memory...")
+    print("Railway Container Started")
+    print("Loading LegalBERT into memory...")
     load_model()
-    print("✅ Model ready — API accepting requests")
+    print("Model ready — API accepting requests")
