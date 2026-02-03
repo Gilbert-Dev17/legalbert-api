@@ -1,12 +1,22 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-from .model_loader import ensure_model_present
+import os
 
-# Ensure the model exists before trying to load it
-MODEL_PATH = ensure_model_present()
+MODEL_DIR = os.path.join(
+    os.getenv("MODEL_STORAGE_PATH", "/models"),
+    "legalbert"
+)
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_DIR,
+    local_files_only=True
+)
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_DIR,
+    local_files_only=True
+)
+
 model.eval()
 
 def classify_text(text: str):
