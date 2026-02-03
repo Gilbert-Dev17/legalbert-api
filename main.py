@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware # <--- IMPORT THIS
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
+from app.services.model_loader import ensure_model_present
 
 app = FastAPI(title="LegalBERT API")
 
@@ -26,6 +27,6 @@ app.include_router(ocr_router)  # <--- ADD THIS LINE
 def startup():
     print(" Railway Container Started")
     print(" Loading LegalBERT Model into Memory...")
-    # global model
-    # model = load_model_function() <--- This is where the 15s delay happens
+    ensure_model_present()
+    print("✅ LegalBERT ready")
     print(" Model Loaded! API is ready to accept requests.")
