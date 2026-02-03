@@ -9,7 +9,7 @@ classifier = pipeline(
     model=REPO_ID,
     tokenizer=REPO_ID,
     device=-1,
-    torch_dtype="float16",
+    # torch_dtype="float16",
     use_auth_token=HF_TOKEN
 )
 

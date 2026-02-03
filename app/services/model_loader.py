@@ -34,8 +34,8 @@ def load_model():
             model = AutoModelForSequenceClassification.from_pretrained(
                 REPO_ID,
                 token=HF_TOKEN,
-                torch_dtype=torch.float16,
-                device_map="auto",
+                # torch_dtype=torch.float16,
+                # device_map="auto",
             )
 
             tokenizer.save_pretrained(MODEL_DIR)
