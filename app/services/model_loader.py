@@ -2,10 +2,17 @@
 import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-REPO_ID = os.getenv("HF_REPO_ID")
+REPO_ID = os.getenv(
+    "HF_REPO_ID",
+    "nlpaueb/legal-bert-base-uncased"
+)
+
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-BASE_DIR = os.getenv("MODEL_STORAGE_PATH", "/models")
+# if not REPO_ID:
+#     raise RuntimeError("HF_REPO_ID environment variable is not set")
+
+BASE_DIR = os.getenv("MODEL_STORAGE_PATH", "/data")
 MODEL_DIR = os.path.join(BASE_DIR, "legalbert")
 
 tokenizer = None
@@ -31,12 +38,13 @@ def load_model():
         tokenizer = AutoTokenizer.from_pretrained(
             REPO_ID,
             token=HF_TOKEN,
-            force_download=True
+            cache_dir=MODEL_DIR
+
         )
         model = AutoModelForSequenceClassification.from_pretrained(
             REPO_ID,
             token=HF_TOKEN,
-             force_download=True
+            cache_dir=MODEL_DIR
         )
 
         tokenizer.save_pretrained(MODEL_DIR)
@@ -48,6 +56,8 @@ def load_model():
 
         tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+
+        print("📁 MODEL_DIR contents:", os.listdir(MODEL_DIR))
 
     model.eval()
     _loaded = True

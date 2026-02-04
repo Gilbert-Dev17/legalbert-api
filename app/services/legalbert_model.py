@@ -1,7 +1,6 @@
 import torch
 from app.services.model_loader import load_model
 
-
 def classify_text(text: str):
     tokenizer, model = load_model()
 
