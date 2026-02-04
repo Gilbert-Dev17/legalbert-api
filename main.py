@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
-from app.services.model_loader import load_model
 import os
 
 app = FastAPI(title="LegalBERT API")
@@ -20,16 +19,19 @@ app.include_router(health_router)
 app.include_router(classify_router)
 app.include_router(ocr_router)
 
+
 @app.on_event("startup")
 def startup():
-    print("Checking model cache directory contents:")
+    print("🚀 Railway container started")
+
     hf_token = os.getenv("HF_TOKEN")
-    if hf_token:
-        print("HF_TOKEN:", hf_token[:4] + "...")
+    print("HF_TOKEN:", "SET" if hf_token else "MISSING")
+
+    # Safe directory check
+    models_dir = os.getenv("MODEL_STORAGE_PATH", "/models")
+    if os.path.exists(models_dir):
+        print("📦 Model volume contents:", os.listdir(models_dir))
     else:
-        print("HF_TOKEN: MISSING")
-    print(os.listdir("/models"))
-    print("Railway Container Started")
-    print("Loading LegalBERT into memory...")
-    load_model()
-    print("Model ready — API accepting requests")
+        print("📦 Model volume not initialized yet")
+
+    print("✅ API ready — model will load lazily on first request")
