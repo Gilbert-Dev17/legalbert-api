@@ -1,31 +1,29 @@
-from transformers import pipeline
-import os
+import torch
+from app.services.model_loader import load_model
+from typing import Tuple
 
-REPO_ID = os.getenv("HF_REPO_ID")
-HF_TOKEN = os.getenv("HF_TOKEN")
-
-_classifier = None
-
-def get_classifier():
-    global _classifier
-    if _classifier is None:
-        _classifier = pipeline(
-            "text-classification",
-            model=REPO_ID,
-            tokenizer=REPO_ID,
-            # device=-1,
-            # torch_dtype="float16",
-            use_auth_token=HF_TOKEN
-        )
-    return _classifier
 
 def classify_text(text: str):
-    classifier = get_classifier()
-    results = classifier(text, truncation=True, max_length=128)
-    if not results or not isinstance(results, list):
-        return {"label": "UNKNOWN", "confidence": 0.0}
-    first_result = results[0]
+    tokenizer, model = load_model()
+
+    # 👇 Tell Pylance these are guaranteed
+    assert tokenizer is not None
+    assert model is not None
+
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        max_length=128
+    )
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        probs = torch.softmax(outputs.logits, dim=1)
+        label_index = int(torch.argmax(probs, dim=1).item())
+        label_name = model.config.id2label.get(label_index, "UNKNOWN")
+
     return {
-        "label": first_result["label"],
-        "confidence": first_result["score"]
+        "label": label_name,
+        "confidence": float(probs[0][label_index].item())
     }
