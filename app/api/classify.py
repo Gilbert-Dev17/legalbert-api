@@ -3,10 +3,6 @@ from app.services.ocr_service import perform_ocr
 from app.services.legalbert_model import classify_text
 from .schemas import ClassifyDocumentResponse # Import the schema you created
 import requests
-from pydantic import BaseModel
-
-class DocumentRequest(BaseModel):
-    file_url: str
 
 router = APIRouter()
 
@@ -14,9 +10,7 @@ from urllib.parse import urlparse
 import os
 
 @router.post("/process-document", response_model=ClassifyDocumentResponse)
-async def process_document(request: DocumentRequest):
-    file_url = request.file_url
-
+async def process_document(file_url: str):
     try:
         response = requests.get(file_url)
         response.raise_for_status()

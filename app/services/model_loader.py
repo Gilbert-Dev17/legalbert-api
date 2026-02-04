@@ -36,7 +36,7 @@ def load_model():
         model = AutoModelForSequenceClassification.from_pretrained(
             REPO_ID,
             token=HF_TOKEN,
-            force_download=True
+             force_download=True
         )
 
         tokenizer.save_pretrained(MODEL_DIR)

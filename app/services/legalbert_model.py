@@ -1,6 +1,5 @@
 import torch
 from app.services.model_loader import load_model
-from typing import Tuple
 
 
 def classify_text(text: str):
