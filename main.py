@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
+from app.services.model_loader import load_model
 import os
 
 app = FastAPI(title="LegalBERT API")
@@ -34,4 +35,8 @@ def startup():
     else:
         print("📦 Model volume not initialized yet")
 
+    print("⏳ Loading LegalBERT into memory...")
+    load_model()  # <-- Eagerly load the model here
+
+    print("✅ API ready — model loaded and accepting requests")
     print("✅ API ready — model will load lazily on first request")

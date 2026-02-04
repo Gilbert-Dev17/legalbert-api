@@ -12,7 +12,6 @@ tokenizer = None
 model = None
 _loaded = False
 
-
 def load_model():
     global tokenizer, model, _loaded
 
@@ -51,3 +50,6 @@ def load_model():
     model.eval()
     _loaded = True
     return tokenizer, model
+
+def is_loaded():
+    return model is not None
