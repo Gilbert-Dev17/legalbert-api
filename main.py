@@ -30,10 +30,17 @@ def startup():
 
     # Safe directory check
     models_dir = os.getenv("MODEL_STORAGE_PATH", "/models")
+    legalbert_dir = os.path.join(models_dir, "legalbert")
+
     if os.path.exists(models_dir):
         print("📦 Model volume contents:", os.listdir(models_dir))
     else:
         print("📦 Model volume not initialized yet")
+
+    if os.path.exists(legalbert_dir):
+        print("📦 LegalBERT model files:", os.listdir(legalbert_dir))
+    else:
+        print("❌ LegalBERT directory missing!")
 
     print("⏳ Loading LegalBERT into memory...")
     load_model()  # <-- Eagerly load the model here
