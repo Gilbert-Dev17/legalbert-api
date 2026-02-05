@@ -1,49 +1,35 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware # <--- IMPORT THIS
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
-# from app.services.model_loader import load_model
-import os
+from app.services.legalbert_model import get_memory_usage
+from app.services.legalbert_model import get_current_mem
 
 app = FastAPI(title="LegalBERT API")
 
+# --- CRITICAL FOR RAILWAY/VERCEL CONNECTIVITY ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, replace "*" with your Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Connect your routers
 app.include_router(health_router)
 app.include_router(classify_router)
-app.include_router(ocr_router)
+app.include_router(ocr_router)  # <--- ADD THIS LINE
 
-
+# --- YOUR WARMUP STRATEGY ---
+# This runs ONCE when Railway starts the container.
 @app.on_event("startup")
 def startup():
-    print("🚀 Railway container started")
-
-    hf_token = os.getenv("HF_TOKEN")
-    print("HF_TOKEN:", "SET" if hf_token else "MISSING")
-
-    # Safe directory check
-    models_dir = os.getenv("MODEL_STORAGE_PATH", "/models")
-    legalbert_dir = os.path.join(models_dir, "legalbert")
-
-    if os.path.exists(models_dir):
-        print("📦 Model volume contents:", os.listdir(models_dir))
-    else:
-        print("📦 Model volume not initialized yet")
-
-    if os.path.exists(legalbert_dir):
-        print("📦 LegalBERT model files:", os.listdir(legalbert_dir))
-    else:
-        print("❌ LegalBERT directory missing!")
-
-    print("⏳ Loading LegalBERT into memory...")
-    # load_model()  # <-- Eagerly load the model here
-
-    # print("✅ API ready — model loaded and accepting requests")
-    print("✅ API ready — model will load lazily on first request")
+    print(" Railway Container Started")
+    print(" Loading LegalBERT Model into Memory...")
+    get_memory_usage();
+    get_current_mem();
+    # global model
+    # model = load_model_function() <--- This is where the 15s delay happens
+    print(" Model Loaded! API is ready to accept requests.")

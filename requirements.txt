@@ -1,18 +1,17 @@
 # Web Server
-fastapi==0.110.0
-uvicorn==0.27.1
-pydantic==2.6.3
-requests==2.31.0
+fastapi
+uvicorn
+pydantic
+requests
 
 # Machine Learning (Fixes the NumPy 2.x crash)
 numpy<2.0.0
-torch==2.1.0+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
-transformers==4.38.2
+torch
+transformers
 accelerate
-safetensors>=0.4.1
+safetensors
 
 # OCR & Image Processing
-pytesseract==0.3.10
-Pillow==10.2.0
-pdf2image==1.17.0
+pytesseract
+Pillow
+pdf2image

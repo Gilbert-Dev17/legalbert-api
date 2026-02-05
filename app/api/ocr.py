@@ -1,5 +1,5 @@
 import requests
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.services.ocr_service import perform_ocr
 
 router = APIRouter()
