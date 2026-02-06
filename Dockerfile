@@ -2,11 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Ensure the models directory exists and is writable
-RUN mkdir -p /models && chmod 777 /models
+RUN mkdir -p /model_assets && chmod 777 /model_assets
 
-# ENV TRANSFORMERS_CACHE=/tmp/hf_cache
-ENV HF_HOME=/tmp/hf_home
+ENV TRANSFORMERS_CACHE=/model_assets
+ENV HF_HOME=/model_assets
 
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
@@ -14,7 +13,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# --- Install CPU-only PyTorch FIRST ---
 RUN pip install --no-cache-dir \
     torch==2.2.1+cpu \
     torchvision==0.17.1+cpu \
@@ -27,4 +25,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]

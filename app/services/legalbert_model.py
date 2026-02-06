@@ -1,27 +1,86 @@
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import PreTrainedTokenizer, PreTrainedModel
 import torch
-from app.services.model_loader import load_model
+import psutil
+import os
+import sys
+from threading import Lock
+from typing import Optional, cast, Dict, Any
+from pathlib import Path
 
-def classify_text(text: str):
-    tokenizer, model = load_model()
+torch.set_num_threads(1)
 
-    # 👇 Tell Pylance these are guaranteed
-    assert tokenizer is not None
-    assert model is not None
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+MODEL_PATH = os.getenv("MODEL_PATH", str(BASE_DIR / "model_assets"))
+
+_lock = Lock()
+_tokenizer: Optional[PreTrainedTokenizer] = None
+_model: Optional[PreTrainedModel] = None
+
+
+def preload_model():
+    """Explicitly preload the model."""
+    _load_model_if_needed()
+
+
+def _load_model_if_needed():
+    global _tokenizer, _model
+
+    if _model is not None and _tokenizer is not None:
+        return
+
+    with _lock:
+        if _model is None or _tokenizer is None:
+            print("Loading LegalBERT model...", file=sys.stderr)
+
+            _tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+            _model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+
+            if _model is not None:
+                _model.eval()
+
+            print(
+                f"Model loaded. Memory usage: {get_current_mem():.2f} MB",
+                file=sys.stderr,
+            )
+
+
+def classify_text(text: str) -> Dict[str, Any]:
+    _load_model_if_needed()
+
+    tokenizer = cast(PreTrainedTokenizer, _tokenizer)
+    model = cast(Any, _model)
 
     inputs = tokenizer(
         text,
         return_tensors="pt",
         truncation=True,
-        max_length=128
+        padding=True
     )
 
     with torch.no_grad():
         outputs = model(**inputs)
         probs = torch.softmax(outputs.logits, dim=1)
-        label_index = int(torch.argmax(probs, dim=1).item())
-        label_name = model.config.id2label.get(label_index, "UNKNOWN")
+
+        label_index: int = int(torch.argmax(probs, dim=1).item())
+        confidence: float = float(probs[0][label_index].item())
+
+        label_name = "Unknown"
+        if hasattr(model, "config") and model.config.id2label:
+            label_name = model.config.id2label.get(label_index, f"LABEL_{label_index}")
 
     return {
         "label": label_name,
-        "confidence": float(probs[0][label_index].item())
+        "confidence": confidence
     }
+
+
+def get_memory_usage():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / (1024 * 1024)
+
+
+def get_current_mem():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / (1024 * 1024)
