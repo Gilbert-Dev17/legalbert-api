@@ -1,35 +1,50 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # <--- IMPORT THIS
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
 from app.api.ocr import router as ocr_router
-from app.services.legalbert_model import get_memory_usage
-from app.services.legalbert_model import get_current_mem
 
-app = FastAPI(title="LegalBERT API")
+from app.services.legalbert_model import (
+    get_memory_usage,
+    get_current_mem,
+    preload_model,  # we’ll add this safely
+)
 
-# --- CRITICAL FOR RAILWAY/VERCEL CONNECTIVITY ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP ---
+    print("🚀 Container starting...")
+    print("📊 Initial memory usage:")
+    get_memory_usage()
+    get_current_mem()
+
+    # OPTIONAL: preload model ONLY if you want
+    # Comment this out if Azure cold-starts are failing
+    preload_model()
+
+    print(" App startup complete")
+    yield
+
+    # --- SHUTDOWN ---
+    print(" Container shutting down")
+
+app = FastAPI(
+    title="LegalBERT API",
+    lifespan=lifespan,
+)
+
+# --- CORS (Vercel-safe) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace "*" with your Vercel URL
+    allow_origins=["*"],  # replace with Vercel domain later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Connect your routers
+# --- Routers ---
 app.include_router(health_router)
 app.include_router(classify_router)
-app.include_router(ocr_router)  # <--- ADD THIS LINE
-
-# --- YOUR WARMUP STRATEGY ---
-# This runs ONCE when Railway starts the container.
-@app.on_event("startup")
-def startup():
-    print(" Railway Container Started")
-    print(" Loading LegalBERT Model into Memory...")
-    get_memory_usage();
-    get_current_mem();
-    # global model
-    # model = load_model_function() <--- This is where the 15s delay happens
-    print(" Model Loaded! API is ready to accept requests.")
+app.include_router(ocr_router)
