@@ -1,63 +1,53 @@
 import requests
 import time
-from app.services.ocr_service import perform_ocr
-from urllib.parse import urlparse
 import os
+from urllib.parse import urlparse
+from app.services.ocr_service import perform_ocr
+from app.services.supabase.database_service import get_supabase_client
 
-def index_full_document(file_url: str):
+def index_full_document(file_url: str, doc_id: str):
     """
-    Background task to scan pages 2-N and prepare for Search Vector.
+    Background task to scan pages 2-N and update the database record.
     """
-    print(f"\n[QUEUE] Background indexing started for: {file_url}")
-
+    print(f"\n[QUEUE] Background indexing started for Doc ID: {doc_id}")
     start_time = time.time()
 
     try:
-        # 1. Download the file again for the full scan
+        # 1. Download for the deep scan
         response = requests.get(file_url)
         response.raise_for_status()
 
         parsed_url = urlparse(file_url)
         filename = os.path.basename(parsed_url.path)
 
-        # 2. OCR pages 2 to the end (MAX_PDF_PAGES is 10)
+        # 2. OCR pages 2 to 100 (Max limit for deep search)
+        # This will take 1-3 minutes depending on length
         extracted_text_rest = perform_ocr(response.content, filename, pages=list(range(2, 101)))
 
-        # Calculate duration immediately after OCR finishes
-        end_time = time.time()
-        duration = end_time - start_time
+        duration = time.time() - start_time
 
         if not extracted_text_rest:
-            print(f"No additional text found in pages 2-10 for {filename}")
+            print(f"[WARN] No additional text found for {filename} after {duration:.2f}s")
             return
 
-        # 3. CHUNKING & EMBEDDINGS
-        chunks = chunk_text(extracted_text_rest)
+        # 3. PUSH TO SUPABASE
+        # This updates the 'extracted_text_rest' column, which triggers the 'search_vector'
+        db_update = get_supabase_client().table("documents_table").update({
+            "extracted_text_rest": extracted_text_rest
+        }).eq("doc_id", doc_id).execute()
 
-        # 4. SAVE TO VECTOR STORE
-        save_to_vector_db(file_url, chunks)
-
-        # for testing purposes, you can run this function directly to see the OCR results without waiting for the background task
-        if extracted_text_rest:
-            # Output the results and the time taken
-            print(f"\n--- BACKGROUND SCAN REPORT ---")
-            print(f"File: {filename}")
-            print(f"Time Taken: {duration:.2f} seconds") # Prints something like '24.52 seconds'
-            print(f"Content Sample: {extracted_text_rest[:500]}...")
+        if db_update.data:
+            print(f"\n--- BACKGROUND SCAN SUCCESS ---")
+            print(f"Doc ID: {doc_id}")
+            print(f"Time Taken: {duration:.2f} seconds")
+            print(f"Status: Database record updated and search vector generated.")
             print(f"-------------------------------\n")
         else:
-            print("\nERROR: No text found in the background scan.")
-
-        print(f"Background indexing completed for: {filename}")
+            print(f"[ERROR] Could not find Doc ID {doc_id} to update text.")
 
     except Exception as e:
-        print(f"Background task failed for {file_url}: {e}")
+        print(f"[CRITICAL] Background task failed for {doc_id}: {e}")
 
+# Keep your chunking logic if you plan to add Semantic Vector Search later
 def chunk_text(text, size=500):
-    """Simple character-based chunking."""
     return [text[i:i+size] for i in range(0, len(text), size)]
-
-def save_to_vector_db(file_url, chunks):
-    """Placeholder for your Supabase/Vector DB logic."""
-    # Logic to generate embeddings and upsert to your database
-    pass
