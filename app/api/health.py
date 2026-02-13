@@ -18,7 +18,7 @@ def model_health():
 
     return {
         "status": "healthy" if system_ram < 90 else "degraded",
-        "model": "legalbert-base-uncased",
+        "model": "legalbert-v1",
         "version": os.getenv("LEGALBERT_VERSION", "1.0.0"),
         "is_loaded": is_loaded,
         "memory_usage_mb": round(current_mem, 2),

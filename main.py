@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import multiprocessing as mp
 
 from app.api.health import router as health_router
 from app.api.classify import router as classify_router
@@ -9,8 +10,12 @@ from app.api.ocr import router as ocr_router
 from app.services.legalbert_model import (
     get_memory_usage,
     get_current_mem,
-    preload_model,  # we’ll add this safely
+    preload_model,  # we'll add this safely
 )
+
+# Prevent semaphore resource leak warnings
+if mp.get_start_method(allow_none=True) is None:
+    mp.set_start_method('fork', force=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +34,8 @@ async def lifespan(app: FastAPI):
 
     # --- SHUTDOWN ---
     print(" Container shutting down")
+    # Clean up multiprocessing resources
+    mp.active_children()
 
 app = FastAPI(
     title="LegalBERT API",
@@ -38,7 +45,7 @@ app = FastAPI(
 # --- CORS (Vercel-safe) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # replace with Vercel domain later
+    allow_origins=["http://localhost:3000", ""],  # replace with Vercel domain later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -18,6 +18,26 @@ _lock = Lock()
 _tokenizer: Optional[PreTrainedTokenizer] = None
 _model: Optional[PreTrainedModel] = None
 
+# Friendly label mapping: human-readable <-> numeric ids
+LABEL_MAP = {"civil": 0, "criminal": 1, "legal fees": 2}
+ID_TO_LABEL = {v: k for k, v in LABEL_MAP.items()}
+
+
+def label_to_id(label: str) -> int:
+    """Convert a human label to its numeric id.
+
+    Example: label_to_id('civil') -> 0
+    """
+    return LABEL_MAP[label.strip().lower()]
+
+
+def id_to_label_fn(idx: int) -> str:
+    """Convert a numeric id to its human label.
+
+    Example: id_to_label_fn(1) -> 'criminal'
+    """
+    return ID_TO_LABEL.get(int(idx), f"LABEL_{idx}")
+
 
 def preload_model():
     """Explicitly preload the model."""
@@ -39,6 +59,15 @@ def _load_model_if_needed():
 
             if _model is not None:
                 _model.eval()
+
+            # Ensure model config uses friendly labels
+            try:
+                if _model is not None and hasattr(_model, "config"):
+                    _model.config.id2label = {0: "civil", 1: "criminal", 2: "legal fees"}
+                    _model.config.label2id = {"civil": 0, "criminal": 1, "legal fees": 2}
+            except Exception:
+                # Non-fatal: continue even if config cannot be modified
+                pass
 
             print(
                 f"Model loaded. Memory usage: {get_current_mem():.2f} MB",

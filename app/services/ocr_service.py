@@ -3,20 +3,19 @@ from PIL import Image
 from pdf2image import convert_from_bytes
 import io
 import sys
+from typing import Optional
 
 TESSERACT_CONFIG = "--oem 3 --psm 6"
-
-# Azure-safe limits
-MAX_PDF_PAGES = 10
+MAX_PDF_PAGES = 100 # Increased to 100 to allow for more pages in the background indexing
 PDF_DPI = 200
 
 
-def perform_ocr(file_bytes: bytes, filename: str) -> str:
+def perform_ocr(file_bytes: bytes, filename: str, pages: Optional[list] = None) -> str:
     """Perform OCR on image or PDF bytes safely for Azure."""
 
     try:
         if filename.lower().endswith(".pdf"):
-            return _ocr_pdf(file_bytes)
+            return _ocr_pdf(file_bytes, pages=pages)
         else:
             return _ocr_image(file_bytes)
     except Exception as e:
@@ -24,15 +23,20 @@ def perform_ocr(file_bytes: bytes, filename: str) -> str:
         return ""
 
 
-def _ocr_pdf(file_bytes: bytes) -> str:
+def _ocr_pdf(file_bytes: bytes, pages: list | None = None) -> str:
     full_text = []
+
+    first = pages[0] if pages else 1
+    last = pages[-1] if pages else MAX_PDF_PAGES
 
     images = convert_from_bytes(
         file_bytes,
         dpi=PDF_DPI,
         fmt="jpeg",
         thread_count=1,
-        last_page=MAX_PDF_PAGES
+        first_page=first,  # NEW: respect the start page
+        last_page=last    # NEW: respect the end page
+
     )
 
     for i, image in enumerate(images):
@@ -42,7 +46,8 @@ def _ocr_pdf(file_bytes: bytes) -> str:
                 image,
                 config=TESSERACT_CONFIG
             )
-            full_text.append(f"--- Page {i + 1} ---\n{page_text}")
+            actual_page_num = first + i
+            full_text.append(f"--- Page {actual_page_num} ---\n{page_text}")
         except Exception as e:
             print(f"OCR failed on page {i + 1}: {e}", file=sys.stderr)
 
