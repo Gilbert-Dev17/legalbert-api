@@ -2,8 +2,8 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from app.services.ocr_service import perform_ocr
 from app.services.legalbert_model import classify_text
-from app.services.supabase.database_service import create_initial_document # Import new service
-from .schemas import ClassifyDocumentResponse
+from app.services.supabase.database_service import update_document_classification # Import new service
+from .schemas import ClassifyDocumentResponse, ProcessDocumentRequest
 from app.services.vector_service import index_full_document
 import requests
 import os
@@ -12,8 +12,12 @@ from urllib.parse import urlparse
 router = APIRouter()
 
 @router.post("/process-document", response_model=ClassifyDocumentResponse)
-async def process_document(case_id: str, file_url: str, background_tasks: BackgroundTasks):
+async def process_document(request: ProcessDocumentRequest, background_tasks: BackgroundTasks):
     try:
+        file_url = request.file_url
+        doc_id = request.doc_id
+        case_id = request.case_id
+
         response = requests.get(file_url)
         response.raise_for_status()
 
@@ -30,9 +34,8 @@ async def process_document(case_id: str, file_url: str, background_tasks: Backgr
         classification = classify_text(extracted_text)
 
         # 3. INITIAL SAVE: Create the row in Supabase to get the doc_id
-        doc_id = create_initial_document(
-            case_id=case_id,
-            file_url=file_url,
+        update_document_classification(
+            doc_id=doc_id,
             ai_tag=str(classification["label"]),
             confidence=float(classification["confidence"]),
             text_p1=extracted_text

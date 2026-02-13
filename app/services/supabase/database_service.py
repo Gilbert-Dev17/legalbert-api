@@ -22,44 +22,29 @@ def get_supabase_client() -> Client:
         _supabase_client = create_client(url, key)
     return _supabase_client
 
-def create_initial_document(
-    case_id: str,
-    file_url: str,
+def update_document_classification(
+    doc_id: str,
     ai_tag: str,
     confidence: float,
     text_p1: str
 ) -> str:
-    """Inserts the initial record and returns the doc_id."""
+    """Updates the existing record with AI classification results."""
 
     data = {
-        "case_id": case_id,
-        "file_url": file_url.split("?")[0],
         "ai_tag": ai_tag,
-        "status": "pending_review",
         "confidence_score": confidence,
         "extracted_text_p1": text_p1,
     }
 
     try:
-        response = get_supabase_client().table("documents_table").insert(data).execute()
+        # We use .update() instead of .insert() because the frontend already created the row
+        response = get_supabase_client().table("documents_table").update(data).eq("doc_id", doc_id).execute()
 
         if not response.data:
-            raise HTTPException(status_code=500, detail="Supabase insert returned no data.")
+            raise HTTPException(status_code=404, detail=f"Document with ID {doc_id} not found.")
 
-        # Correctly handles Pylance type checking
-        rows = cast(List[Dict[str, Any]], response.data)
-
-        if len(rows) == 0:
-            raise HTTPException(status_code=500, detail="Insert successful but no rows returned.")
-
-        doc_id = rows[0].get("doc_id")
-
-        if not doc_id:
-            raise HTTPException(status_code=500, detail="doc_id missing from Supabase response.")
-
-        return str(doc_id)
+        return doc_id
 
     except Exception as e:
-        # Log the error for your thesis performance records
-        print(f"Database Error: {e}")
-        raise HTTPException(status_code=500, detail=f"Database insertion failed: {str(e)}")
+        print(f"Database Update Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
