@@ -1,8 +1,9 @@
 import requests
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException
 from app.services.ocr_service import perform_ocr
 
 router = APIRouter()
+
 
 @router.post("/extract-text")
 def extract_text(file_url: str):
@@ -10,12 +11,15 @@ def extract_text(file_url: str):
         response = requests.get(file_url, timeout=15)
         response.raise_for_status()
 
-        # Extract the filename from the URL
         filename = file_url.split("/")[-1]
 
-        # Pass BOTH arguments here
-        text = perform_ocr(response.content, filename)
+        text = perform_ocr(response.content, filename, engine="google")
 
-        return {"status": "success", "extracted_text": text}
+        return {
+            "status": "success",
+            "engine": "google_vision",
+            "extracted_text": text
+        }
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
