@@ -63,8 +63,8 @@ def _load_model_if_needed():
             # Ensure model config uses friendly labels
             try:
                 if _model is not None and hasattr(_model, "config"):
-                    _model.config.id2label = {0: "civil", 1: "criminal", 2: "legal fees"}
-                    _model.config.label2id = {"civil": 0, "criminal": 1, "legal fees": 2}
+                    _model.config.id2label = {0: "civil", 1: "criminal", 2: "legal_fees"}
+                    _model.config.label2id = {"civil": 0, "criminal": 1, "legal_fees": 2}
             except Exception:
                 # Non-fatal: continue even if config cannot be modified
                 pass
