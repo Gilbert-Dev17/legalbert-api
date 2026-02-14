@@ -36,7 +36,6 @@ def _ocr_pdf(file_bytes: bytes, pages: list | None = None) -> str:
         thread_count=1,
         first_page=first,  # NEW: respect the start page
         last_page=last    # NEW: respect the end page
-
     )
 
     for i, image in enumerate(images):
