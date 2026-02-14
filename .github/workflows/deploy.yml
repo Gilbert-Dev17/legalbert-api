@@ -19,12 +19,19 @@ jobs:
           username: ${{ secrets.AZURE_USERNAME }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           script: |
+            # 1. Navigate to your project folder
             cd ~/legalbert-api
+
+            # 2. Sync the latest code from GitHub
             git pull origin main
-            # Rebuild the Docker image to include new Supabase/OCR dependencies
-            docker build -t legalbert-api .
-            # Stop existing container if it's running
-            docker stop legalbert-app || true
-            docker rm legalbert-app || true
-            # Run the updated container
-            docker run -d --name legalbert-app -p 80:80 --env-file .env legalbert-api
+
+            # 3. Enter your virtual environment and update libraries
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            # 4. Stop the old API and start the new one in the background
+            # 'pkill' finds the old uvicorn process and stops it
+            pkill uvicorn || true
+
+            # 'nohup' keeps the API running even after the SSH session ends
+            nohup uvicorn main:app --host 0.0.0.0 --port 8000 > output.log 2>&1 &
