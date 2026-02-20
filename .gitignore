@@ -3,4 +3,5 @@ venv/
 __pycache__/
 *.py[cod]
 .env.local
+.env
 model_assets/

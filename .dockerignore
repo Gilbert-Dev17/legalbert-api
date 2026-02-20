@@ -5,7 +5,8 @@
 # Ignore local virtual environments (CRITICAL to save space)
 .venv
 venv
-env
+.env
+.env.local
 
 # Ignore cache
 __pycache__
