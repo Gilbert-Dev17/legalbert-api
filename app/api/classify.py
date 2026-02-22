@@ -8,6 +8,9 @@ from app.services.vector_service import index_full_document
 import requests
 import os
 from urllib.parse import urlparse
+import time
+from pydantic import BaseModel
+
 
 router = APIRouter()
 
@@ -57,3 +60,30 @@ async def process_document(request: ProcessDocumentRequest, background_tasks: Ba
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# class ClassifyTextRequest(BaseModel):
+#     text: str
+
+# @router.post("/classify-text")
+# async def classify_text_route(request: ClassifyTextRequest):
+#     """
+#     Classify raw text directly without OCR or database updates.
+#     """
+
+#     try:
+#         start_time = time.time()
+
+#         result = classify_text(request.text)
+
+#         end_time = time.time()
+#         processing_time = round(end_time - start_time, 4)
+
+#         return {
+#             "label": result["label"],
+#             "confidence": result["confidence"],
+#             "processing_time_seconds": processing_time
+#         }
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
