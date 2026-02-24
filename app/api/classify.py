@@ -11,12 +11,13 @@ from urllib.parse import urlparse
 import time
 from pydantic import BaseModel
 
-
 router = APIRouter()
 
 @router.post("/process-document", response_model=ClassifyDocumentResponse)
 async def process_document(request: ProcessDocumentRequest, background_tasks: BackgroundTasks):
     try:
+        start_time = time.time()
+
         file_url = request.file_url
         doc_id = request.doc_id
         case_id = request.case_id
@@ -44,6 +45,9 @@ async def process_document(request: ProcessDocumentRequest, background_tasks: Ba
             text_p1=extracted_text
         )
 
+        end_time = time.time()
+        processing_time = round(end_time - start_time, 4)
+
         # 4. BACKGROUND TASK: Use the real doc_id, not the filename
         background_tasks.add_task(index_full_document, file_url, doc_id)
 
@@ -53,7 +57,8 @@ async def process_document(request: ProcessDocumentRequest, background_tasks: Ba
             "file_url": file_url.split("?")[0],
             "ai_tag": str(classification["label"]),
             "confidence_score": classification["confidence"],
-            "extracted_text_p1": extracted_text
+            "extracted_text_p1": extracted_text,
+            "processing_time_seconds": processing_time
         }
 
     except HTTPException:
