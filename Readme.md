@@ -6,8 +6,14 @@ Tesseract OCR 5.5.1 was evaluated straight out of the box at 200 DPI without any
 
 | Metric | Score |
 |--------|-------|
-| Average CER | 0.1079 |
-| Average WER | 0.1405 |
+| Average CER | 0.0466 |
+| Average WER | 0.0650 |
+
+Average CER: 0.04665670563890406
+Average WER: 0.06504165719621838
+
+Average CER: 0.10793473271187017
+Average WER: 0.14045997180134764
 
 > CER (Character Error Rate) and WER (Word Error Rate) are the standard metrics for OCR accuracy evaluation.
 > Lower is better; 0.0 = perfect, 1.0 = completely wrong.

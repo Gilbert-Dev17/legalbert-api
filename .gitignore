@@ -5,4 +5,5 @@ __pycache__/
 .env.local
 .env
 model_assets/
-dataset/
+dataset-png/
+dataset-text/
