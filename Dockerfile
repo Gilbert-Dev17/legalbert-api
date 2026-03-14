@@ -20,9 +20,13 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt .
-RUN pip install accelerate
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
+# Start both FastAPI and Celery worker in the same container
+# Azure free tier has no storage so we can't run separate containers
+CMD ["sh", "-c", "\
+    celery -A app.celery_app worker --loglevel=info --pool=solo --concurrency=1 & \
+    uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers \
+"]

@@ -1,4 +1,7 @@
 from celery import Celery
+import os
+
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 celery_app = Celery(
     "legalbert_worker",
