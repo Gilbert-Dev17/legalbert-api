@@ -6,7 +6,7 @@ import sys
 from typing import Optional
 
 TESSERACT_CONFIG = "--oem 3 --psm 6"
-MAX_PDF_PAGES = 100 # Increased to 100 to allow for more pages in the background indexing
+MAX_PDF_PAGES = 100
 PDF_DPI = 200
 
 

@@ -13,15 +13,15 @@ from app.services.legalbert_model import (
     preload_model,  # we'll add this safely
 )
 
-# Prevent semaphore resource leak warnings
-if mp.get_start_method(allow_none=True) is None:
-    mp.set_start_method('fork', force=True)
+# # Prevent semaphore resource leak warnings
+# if mp.get_start_method(allow_none=True) is None:
+#     mp.set_start_method('fork', force=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- STARTUP ---
-    print("🚀 Container starting...")
-    print("📊 Initial memory usage:")
+    print("Container starting...")
+    print("Initial memory usage:")
     get_memory_usage()
     get_current_mem()
 
