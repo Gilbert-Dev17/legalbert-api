@@ -6,6 +6,10 @@ requests==2.31.0
 python-dotenv==1.0.0
 supabase==2.13.0
 
+# Task Queue
+celery==5.3.6
+redis==5.0.3
+
 # Machine Learning
 numpy<2.0.0
 transformers==4.38.2

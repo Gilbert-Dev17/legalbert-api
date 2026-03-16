@@ -2,11 +2,6 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN mkdir -p /model_assets && chmod 777 /model_assets
-
-ENV TRANSFORMERS_CACHE=/model_assets
-ENV HF_HOME=/model_assets
-
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     poppler-utils \
@@ -20,9 +15,12 @@ RUN pip install --no-cache-dir \
     
 
 COPY requirements.txt .
-RUN pip install accelerate
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
+CMD ["sh", "-c", "\
+    celery -A app.celery_app worker --loglevel=info --pool=solo --concurrency=1 -Q classify --hostname=classify@%h & \
+    celery -A app.celery_app worker --loglevel=info --pool=solo --concurrency=1 -Q index --hostname=index@%h & \
+    uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers \
+"]

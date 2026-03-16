@@ -16,3 +16,4 @@ class ClassifyDocumentResponse(BaseModel):
     ai_tag: str
     confidence_score: float
     extracted_text_p1: str
+    processing_time_seconds: float

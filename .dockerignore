@@ -5,12 +5,7 @@
 # Ignore local virtual environments (CRITICAL to save space)
 .venv
 venv
-.env
-.env.local
 
 # Ignore cache
 __pycache__
 *.pyc
-
-# Do NOT ignore model_assets (if you are building locally)
-# model_assets/
