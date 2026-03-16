@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
-    torch==2.2.1+cpu \
-    torchvision==0.17.1+cpu \
-    torchaudio==2.2.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
+    torch==2.2.1 \
+    torchvision==0.17.1 \
+    torchaudio==2.2.1 
+    
 
 COPY requirements.txt .
 RUN pip install accelerate
