@@ -21,6 +21,29 @@ def generate_signed_url(file_path: str, expires_in: int = 300) -> str:
     return url
 
 
+def extract_text(file_url: str, filename: str):
+    import requests
+    from io import BytesIO
+
+    ext = filename.lower().split(".")[-1]
+
+    if ext in ["pdf", "png", "jpg", "jpeg"]:
+        return perform_ocr(file_url, filename, pages=[1])
+
+    elif ext == "docx":
+        from docx import Document
+
+        response = requests.get(file_url, timeout=30)
+        response.raise_for_status()
+
+        doc = Document(BytesIO(response.content))
+        text = "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+
+        return text[:2500]  # keep within ~512 tokens
+
+    else:
+        raise ValueError(f"Unsupported file type: {ext}")
+
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=10)
 def classify_document_task(self: Task, doc_id: str, file_path: str, case_id: str) -> None:
     """
@@ -44,7 +67,8 @@ def classify_document_task(self: Task, doc_id: str, file_path: str, case_id: str
         filename = os.path.basename(urlparse(file_path).path)
 
         # Step 3: OCR page 1 ONLY — no req.get() here, streaming happens inside perform_ocr
-        extracted_text = perform_ocr(signed_url, filename, pages=[1])
+        # extracted_text = perform_ocr(signed_url, filename, pages=[1])
+        extracted_text = extract_text(signed_url, filename)
 
         if not extracted_text:
             raise ValueError("OCR could not extract text from document")
@@ -87,9 +111,11 @@ def index_document_task(self: Task, doc_id: str, file_path: str) -> None:
     A fresh signed URL is generated here since the classify task's URL may have expired.
     """
     try:
+        filename = os.path.basename(urlparse(file_path).path)
+
         # Fresh signed URL with longer expiry — indexing pages 2-100 takes time
         signed_url = generate_signed_url(file_path, expires_in=600)
-        index_full_document(signed_url, doc_id)
+        index_full_document(signed_url, doc_id, filename)
         print(f"[index_document_task] Indexed doc_id={doc_id}")
 
     except Exception as e:

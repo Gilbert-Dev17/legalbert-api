@@ -5,7 +5,20 @@ from app.services.ocr_service import perform_ocr
 from app.services.supabase.database_service import get_supabase_client
 
 
-def index_full_document(file_url: str, doc_id: str) -> None:
+def extract_docx_text(file_url: str) -> str:
+    """Extract full text from DOCX (no OCR)."""
+    import requests
+    from docx import Document
+    from io import BytesIO
+
+    response = requests.get(file_url, timeout=30)
+    response.raise_for_status()
+
+    doc = Document(BytesIO(response.content))
+    return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+
+
+def index_full_document(file_url: str, doc_id: str, filename: str) -> None:
     """
     Background task to OCR pages 2-N and update the database record.
     Passes the signed URL directly to perform_ocr — no manual download needed.
@@ -15,12 +28,22 @@ def index_full_document(file_url: str, doc_id: str) -> None:
     start_time = time.time()
 
     try:
-        # Derive filename from URL for file type detection in perform_ocr
+        # Derive filename from URL for file type detection
         parsed_url = urlparse(file_url)
         filename = os.path.basename(parsed_url.path)
+        ext = filename.lower().split(".")[-1]
 
-        # OCR pages 2–100 — URL is streamed directly, no full download into RAM
-        extracted_text_rest = perform_ocr(file_url, filename, pages=list(range(2, 101)))
+        # ✅ NEW: Handle DOCX separately (no OCR)
+        if ext == "docx":
+            extracted_text_rest = extract_docx_text(file_url)
+
+        else:
+            # Existing behavior (unchanged)
+            extracted_text_rest = perform_ocr(
+                file_url,
+                filename,
+                pages=list(range(2, 101))
+            )
 
         duration = time.time() - start_time
 
