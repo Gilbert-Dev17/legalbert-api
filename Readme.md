@@ -4,13 +4,13 @@
 
 Tesseract OCR 5.5.1 was evaluated straight out of the box at 200 DPI without any preprocessing.
 
-| Metric | Score |
-|--------|-------|
-| Average CER | 0.0466 |
-| Average WER | 0.0650 |
-|--------|-------|
-| Character-Level Accuracy | 95% |
-| Word-Level Accuracy | 93% |
+| Metric                   | Score  |
+| ------------------------ | ------ |
+| Average CER              | 0.0466 |
+| Average WER              | 0.0650 |
+| Character-Level Accuracy | 95%    |
+| Word-Level Accuracy      | 93%    |
+
 Average CER: 0.04665670563890406
 Average WER: 0.06504165719621838
 
@@ -19,43 +19,84 @@ Average WER: 0.06504165719621838
 
 ---
 
-## Local Setup
+# Running with Docker
 
-For local instances, you need to create and activate a virtual environment before installing dependencies.
+The LegalBERT API can be run using Docker, which removes the need to manually install Python dependencies or manage virtual environments.
 
-### Create Virtual Environment
+## Prerequisites
 
-```bash
-python -m venv venv
-```
+Make sure the following are installed:
 
-**Mac/Linux:**
-```bash
-source .venv/bin/activate
-```
+* Docker
+* Docker Compose (optional but recommended)
 
-**Windows:**
-```bash
-venv\Scripts\activate
-```
-
-### Install Dependencies
-
-Once the virtual environment is activated, install the required packages:
+Verify installation:
 
 ```bash
-# install all requirements:
-pip install -r requirements.txt
+docker --version
+docker compose version
 ```
 
-### Run Locally
+---
 
-To start the API server with auto-reload enabled:
+## Build the Docker Image
+
+From the project root directory, build the Docker container:
 
 ```bash
-uvicorn main:app --reload
+docker build -t legalbert-api .
 ```
 
-The API will be available at `http://localhost:8000`
+---
 
-You can access the interactive API documentation at `http://localhost:8000/docs`
+## Run the Container
+
+Start the API container:
+
+```bash
+docker run -p 8000:8000 legalbert-api
+```
+
+The API will now be available at:
+
+```
+http://localhost:8000
+```
+
+Interactive API documentation:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Run with Docker Compose (Recommended)
+
+If a docker-compose.yml file is included, you can start the entire stack with:
+
+```bash
+docker compose up --build
+```
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+---
+
+## Rebuilding After Code Changes
+
+If you modify dependencies or Docker configuration, rebuild the container:
+
+```bash
+docker compose up --build
+```
+
+or
+
+```bash
+docker build -t legalbert-api .
+```
