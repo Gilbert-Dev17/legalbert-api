@@ -11,8 +11,20 @@ Tesseract OCR 5.5.1 was evaluated straight out of the box at 200 DPI without any
 | Character-Level Accuracy | 95%    |
 | Word-Level Accuracy      | 93%    |
 
+For PDF Extraction
 Average CER: 0.04665670563890406
 Average WER: 0.06504165719621838
+
+| Metric                   | Score  |
+| ------------------------ | ------ |
+| Average CER              | 0.1079 |
+| Average WER              | 0.1404 |
+| Character-Level Accuracy | 89.21% |
+| Word-Level Accuracy      | 85.95% |
+
+For PNG Extraction
+Average CER: 0.10793473271187015
+Average WER: 0.14045997180134767
 
 > CER (Character Error Rate) and WER (Word Error Rate) are the standard metrics for OCR accuracy evaluation.
 > Lower is better; 0.0 = perfect, 1.0 = completely wrong.

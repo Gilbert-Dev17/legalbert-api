@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 from app.services.ocr_service import perform_ocr
 from app.services.supabase.database_service import get_supabase_client
 
-
 def extract_docx_text(file_url: str) -> str:
     """Extract full text from DOCX (no OCR)."""
     import requests
